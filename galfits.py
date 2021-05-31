@@ -111,3 +111,4 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,min_value,max_value,cmap,ticks=Non
     ystart=0.655
 
     fig.text(xstart,ystart,label,color='black',size='14',weight='bold', family='serif')
+    return fig
