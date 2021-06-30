@@ -17,9 +17,9 @@ def standard_setup(sp,imagecenterX, imagecenterY, imageradius):
   sp.frame.set_color('black')
   sp.tick_labels.set_font(size='10')
   sp.axis_labels.set_font(size='12')
-  sp.set_tick_labels_format(xformat='hh:mm:ss',yformat='dd:mm:ss')
+  #sp.set_tick_labels_format(xformat='hh:mm:ss',yformat='dd:mm:ss') test removing
   sp.ticks.set_color('white')
-  sp.recenter(imagecenterX, imagecenterY, radius=imageradius)
+  #sp.recenter(imagecenterX, imagecenterY, radius=imageradius) test removing
   #sp.ticks.set_xspacing(0.09)
 
 
