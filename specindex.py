@@ -79,11 +79,11 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="yellow-blue",mo
     color_width = maxp - minp
 
     if steepp < minp or flatp < minp or steepp > maxp or flatp > maxp:
-        print "Error: Currently must have minp < steepp < flatp < maxp"
-        print "  minp = ", minp
-        print "  steepp = ", steepp
-        print "  flatp = ", flatp
-        print "  maxp = ", maxp
+        print("Error: Currently must have minp < steepp < flatp < maxp")
+        print("  minp = "), minp
+        print("  steepp = "), steepp
+        print("  flatp = "), flatp
+        print("  maxp = "), maxp
         return None
 
     s1 = (steepp - minp)/color_width # normalized position of "steep" midpoint
