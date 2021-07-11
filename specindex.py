@@ -48,7 +48,7 @@ def __stretch__(p,s1,f1):
         return ( (p-f0) + (1.-p)*f1 )/(1-f0)
 
 
-def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="yellow-blue",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-default",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
     """ Makes a new colour map based on Jayanne English's colourmap
         of yellow - plum, where the orange and dark cyan points
         are fixed to the steep and flat components, while the outer
