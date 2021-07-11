@@ -90,47 +90,27 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-de
     f1 = (flatp  - minp)/color_width # normalized position of "flat"  midpoint
     m1 = 0.5*(s1+f1)
     
-    points = {}
-    values = {}
-
     # Apply stretches to default
-    points['L'] = [ 0,   s1, m1, __stretch__(0.6,s1,f1),    f1, __stretch__(0.9,s1,f1),   1]
-    values['L'] = [85,   54, 39,     34.3              ,    24,     15.5              ,  15]
+    # Here we set the L,C,H values for the color map. LCH_x correspond to the position along the colourbar (0 at bottom/minimum,
+    #  1 at top/maximum). LCH_y is the LCH values at those positions. In between we use a linear interpolation.
+    LCH_x_vals = [ 0,    s1, m1, __stretch__(0.6,s1,f1),    f1, __stretch__(0.9,s1,f1),   1]
+    LCH_x = {}
+    LCH_y = {}
 
-    points['C'] = [ 0,   s1, m1, __stretch__(0.6,s1,f1),    f1, __stretch__(0.9,s1,f1),   1]
-    values['C'] = [60., 74.4,  0,     7.9               ,  25.1,     46.1              ,  54.4]
+    for coord in ['L','C','H']:
+        LCH_x[coord] = np.copy(LCH_x_vals)
 
-    points['H'] = [ 0,   s1, m1, __stretch__(0.6,s1,f1),    f1, __stretch__(0.9,s1,f1),   1]
-    values['H'] = [86, 51.7, 72,     200               , 276.2,    302.5              , 320]
+    LCH_y['L'] = [85,    54, 39,     34.3              ,    24,     15.5              ,  15]
+    LCH_y['C'] = [60., 74.4,  0,     7.9               ,  25.1,     46.1              ,54.4]
+    LCH_y['H'] = [86,  51.7, 72,     200               , 276.2,    302.5              , 320]
 
-
-    # Apply stretches to default
-#    points['L'] = [ 0, s1,  __stretch__(0.5,s1,f1),                      f1, __stretch__(0.9,s1,f1),  1]
-#    values['L'] = [85, 54,                      42,                   23.88,                     12, 15]
-
-#    points['C'] = [ 0,   s1, __stretch__(0.527777,s1,f1),                        f1,  1]
-#    values['C'] = [60, 74.4,                           0,                     25.14, 60]
-
-#    points['H'] = [ 0,    s1, __stretch__(0.5,s1,f1), __stretch__(0.6,s1,f1),     f1,   1]
-#    values['H'] = [86, 51.66,                     72,                    200, 276.24, 320]
-
-    # Apply stretches to default
-#    points['L'] = [ 0,   s1, m1, __stretch__(0.6,s1,f1),    f1, __stretch__(0.9,s1,f1),   1]
-#    values['L'] = [85,   54, 39,     34.3              ,    23.9,     12.              ,  15]
-
-#    points['C'] = [ 0,   s1, m1, __stretch__(0.6,s1,f1),    f1, __stretch__(0.9,s1,f1),   1]
-#    values['C'] = [60., 74.4,  0,     7.9               ,  25.1,     46.1              ,  60.]
-
-#    points['H'] = [ 0,   s1, m1, __stretch__(0.6,s1,f1),    f1, __stretch__(0.9,s1,f1),   1]
-#   values['H'] = [86, 51.7, 72,     200               , 276.2,    302.5              , 320]
 
     if out:
-        RGB = maps.make_cmap_segmented(points,values,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
+        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
         return name, RGB
     else:
-        maps.make_cmap_segmented(points,values,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name
-        
+        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
+        return name        
 
 def create_cmap_velocity(minp,maxp,div=0.0, width=0.0):
     """ Makes a color map based on Jayanne English's velocity colourmap
