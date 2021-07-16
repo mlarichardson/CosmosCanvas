@@ -100,6 +100,9 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-de
     for coord in ['L','C','H']:
         LCH_x[coord] = np.copy(LCH_x_vals)
 
+    # Each parameter horizontally corresponds to LCH_x_vals positions. 
+    # Each colour at that position is composed ot the value in L, in C, and in H. So the minp has the colour 85,60,86. 
+    # Luminosity ranges from 0 - 100, Chroma ranges from 0 - 100, Hue is degrees on the colour wheel.
     LCH_y['L'] = [85,    54, 39,     34.3              ,    24,     15.5              ,  15]
     LCH_y['C'] = [60., 74.4,  0,     7.9               ,  25.1,     46.1              ,54.4]
     LCH_y['H'] = [86,  51.7, 72,     200               , 276.2,    302.5              , 320]
@@ -112,6 +115,53 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-de
         maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
         return name        
 
+def create_cmap_specindex_error(minp,maxp,midp=None,name="CC-specindex-error",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+    """ Makes a colour map for uncertainties in spectral index. This is based on Jayanne English's 
+        error colourmap of light orange and grey, where the pure orange hue indicates the most uncertainty.
+    """    
+    
+    from matplotlib.colors import LinearSegmentedColormap               
+    color_width = maxp - minp
+    if midp == None:
+        midp = 0.5 * (minp+maxp)
+
+    if midp < minp or midp > maxp:
+        print("Error: Currently must have minp < midp < maxp")
+        print("  minp = "), minp
+        print("  midp = "), midp
+        print("  maxp = "), maxp
+        return None
+                              
+    endcolor = '#ff9506'    # light orange for most error
+    midcolor = '#c9934a'    # grey
+    startcolor = '#b5b5b5'  # light grey for least error
+
+    specIndexErrTst1 = LinearSegmentedColormap.from_list('CC-specindex-error-test1',[startcolor,midcolor, endcolor])
+    
+    m1=midp/color_width
+    LCH_x_vals = [ 0,  m1, 1]
+    LCH_x = {}
+    LCH_y = {}
+
+    for coord in ['L','C','H']:
+        LCH_x[coord] = np.copy(LCH_x_vals)
+
+    # Each parameter horizontally corresponds to LCH_x_vals positions. 
+    # Each colour at that position is composed ot the value in L, in C, and in H. So the minp has the colour 85,60,86. 
+    # Luminosity ranges from 0 - 100, Chroma ranges from 0 - 100, Hue is degrees on the colour wheel.
+    LCH_y['L'] = [71.4,64.789,73.68]
+    LCH_y['C'] = [82.497, 47.552, 0.000]
+    LCH_y['H'] = [66.972, 74.481, 266.929]
+
+                             
+    if out:
+        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
+        return name, RGB, 'CC-specindex-error-test1', specIndexErrTst1
+    else:
+        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
+        return name, 'CC-specindex-error-test1'        
+  
+    
 def create_cmap_velocity(minp,maxp,div=0.0, width=0.0):
     """ Makes a color map based on Jayanne English's velocity colourmap
         of yellow - plum, where the orange and dark cyan points
