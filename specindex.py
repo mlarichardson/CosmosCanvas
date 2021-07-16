@@ -178,8 +178,9 @@ def test_cmap_LCH(L,C,H,Cmax=False,colour=None,width=1.5,stack='h',ax1=None,ax2=
 def __showme__(array, cmap="Greys_r", steps=0,minmax_offset=None):
     """ Internal calls to matplotlib to show the colormap image """
     if steps==0: steps = array.shape[1]
+    cmap = plt.cm.get_cmap(cmap)._resmaple(steps)
     #plt.figure(figsize=(10,4)) # aspect='equal'
-    plt.imshow(array, aspect='auto', interpolation='nearest', cmap=plt.cm.get_cmap(cmap,steps))
+    plt.imshow(array, aspect='auto', interpolation='nearest', cmap=cmap)
     plt.gca().set_xticks([],[])
     plt.gca().set_yticks([],[])
     plt.colorbar()
@@ -192,6 +193,9 @@ def __showme__(array, cmap="Greys_r", steps=0,minmax_offset=None):
 def __showme2__(array, cmap_ref="Greys_r", cmap_comp="Greys",steps=0,t1="Ref",t2="Compare",minmax_offset=None):
     """ Internal calls to matplotlib to show a comparison of two colormaps using the colormap image """
     if steps==0: steps = array.shape[1]
+    
+    cmap_ref = plt.cm.get_cmap(cmap_ref)._resample(steps)
+    cmap_comp = plt.cm.get_cmap(cmap_comp)._resample(steps)
     #plt.figure(figsize=(10,4)) # aspect='equal'
     fig = plt.figure(figsize=(18,6))
 
@@ -199,7 +203,7 @@ def __showme2__(array, cmap_ref="Greys_r", cmap_comp="Greys",steps=0,t1="Ref",t2
     ax2 = plt.subplot(122) ; plt.title(t2) ; fig.gca().set_xticks([],[]) ; fig.gca().set_yticks([],[])
 
 
-    p1 = ax1.imshow(array, aspect='auto', interpolation='nearest', cmap=plt.cm.get_cmap(cmap_ref,steps))
+    p1 = ax1.imshow(array, aspect='auto', interpolation='nearest', cmap=cmap_ref)
     if minmax_offset == None:
         tiny = (array.max() - array.min())/1000.
     else:
@@ -207,7 +211,7 @@ def __showme2__(array, cmap_ref="Greys_r", cmap_comp="Greys",steps=0,t1="Ref",t2
     p1.set_clim( array.min()-tiny, array.max()+tiny)
     fig.colorbar(p1, ax=ax1)
 
-    p2 = ax2.imshow(array, aspect='auto', interpolation='nearest', cmap=plt.cm.get_cmap(cmap_comp,steps))
+    p2 = ax2.imshow(array, aspect='auto', interpolation='nearest', cmap=cmap_comp)
     p2.set_clim( array.min()-tiny, array.max()+tiny)
     fig.colorbar(p2, ax=ax2)
 
