@@ -5,7 +5,7 @@ PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
     for radio spectral index (alpha) data. Two fixed divergent points are defined
     as alpha_steep <-0.8 and alpha_flat >-0.1. 
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
-DATE: Last Edited: 2019-09-13
+DATE: Last Edited: 2021-07-11
 
 FUNCTIONS:
     __generate_cmap__
