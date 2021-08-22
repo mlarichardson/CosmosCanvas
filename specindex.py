@@ -3,7 +3,7 @@
 LIBRARY: specindex
 PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
     for radio spectral index (alpha) data. Two fixed divergent points are defined
-    as alpha_steep <-0.8 and alpha_flat >-0.1. 
+    as alpha_steep <-0.8 and alpha_flat >-0.1.
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
 DATE: Last Edited: 2021-07-11
 
@@ -71,8 +71,8 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-de
     #   --> m = (s+f)/2 = 0.53125
     #
     # The designed colour map defines the step portion in terms of minp - s,
-    #  the flat portion in terms of f - maxp, and the intermediate s - p. 
-    #  As the user can define all four of these, we need to stretch the 
+    #  the flat portion in terms of f - maxp, and the intermediate s - p.
+    #  As the user can define all four of these, we need to stretch the
     #  colourmap as necessary to preserve the features designed into the
     #  colourmap. This is established with the __stretch__ command.
 
@@ -89,7 +89,7 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-de
     s1 = (steepp - minp)/color_width # normalized position of "steep" midpoint
     f1 = (flatp  - minp)/color_width # normalized position of "flat"  midpoint
     m1 = 0.5*(s1+f1)
-    
+
     # Apply stretches to default
     # Here we set the L,C,H values for the color map. LCH_x correspond to the position along the colourbar (0 at bottom/minimum,
     #  1 at top/maximum). LCH_y is the LCH values at those positions. In between we use a linear interpolation.
@@ -100,8 +100,8 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-de
     for coord in ['L','C','H']:
         LCH_x[coord] = np.copy(LCH_x_vals)
 
-    # Each parameter horizontally corresponds to LCH_x_vals positions. 
-    # Each colour at that position is composed ot the value in L, in C, and in H. So the minp has the colour 85,60,86. 
+    # Each parameter horizontally corresponds to LCH_x_vals positions.
+    # Each colour at that position is composed ot the value in L, in C, and in H. So the minp has the colour 85,60,86.
     # Luminosity ranges from 0 - 100, Chroma ranges from 0 - 100, Hue is degrees on the colour wheel.
     LCH_y['L'] = [85,    54, 39,     34.3              ,    24,     15.5              ,  15]
     LCH_y['C'] = [60., 74.4,  0,     7.9               ,  25.1,     46.1              ,54.4]
@@ -113,55 +113,61 @@ def create_cmap_specindex(minp,maxp,steepp=-0.8,flatp=-0.1,name="CC-specindex-de
         return name, RGB
     else:
         maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name        
+        return name
 
-def create_cmap_specindex_error(minp,maxp,midp=None,name="CC-specindex-error",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
-    """ Makes a colour map for uncertainties in spectral index. This is based on Jayanne English's 
+def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=None,C_max=85.,H_0=70.,H_min=None,H_max=None,
+                                name="CC-specindex-error",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+    """ Makes a colour map for uncertainties in spectral index. This is based on Jayanne English's
         error colourmap of light orange and grey, where the pure orange hue indicates the most uncertainty.
-    """    
-    
-    from matplotlib.colors import LinearSegmentedColormap               
-    color_width = maxp - minp
-    if midp == None:
-        midp = 0.5 * (minp+maxp)
 
-    if midp < minp or midp > maxp:
-        print("Error: Currently must have minp < midp < maxp")
-        print("  minp = "), minp
-        print("  midp = "), midp
-        print("  maxp = "), maxp
+        We have added more flexibility for the user, but the default values are setup to produce the desired effect.
+    """
+
+    if c_mid < 0. or 1. < c_mid:
+        print("Error: Currently must have c_mid outside of [0:1]")
+        print("  midp = "), c_mid
         return None
-                              
-    endcolor = '#ff9506'    # light orange for most error
-    midcolor = '#c9934a'    # grey
-    startcolor = '#b5b5b5'  # light grey for least error
 
-    specIndexErrTst1 = LinearSegmentedColormap.from_list('CC-specindex-error-test1',[startcolor,midcolor, endcolor])
-    
-    m1=midp/color_width
-    LCH_x_vals = [ 0,  m1, 1]
+    if L_min==None and L_max==None:
+            L_min = L_ends
+            L_max = L_ends
+    elif L_min==None or L_max==None:
+        print("Error: Currently must set both L_min and L_max, or neither and just set L_ends")
+        return None
+
+    if H_min==None and H_max==None:
+            H_min = H_0
+            H_max = H_0
+    elif H_min==None or H_max==None:
+        print("Error: Currently must set both L_min and L_max, or neither and just set H_0")
+        return None
+
+    C_mid = C_max / 2.
+    H_mid = 0.5*(H_min + H_max)
+
+    LCH_x_vals = [ 0,  c_mid, 1]
     LCH_x = {}
     LCH_y = {}
 
     for coord in ['L','C','H']:
         LCH_x[coord] = np.copy(LCH_x_vals)
 
-    # Each parameter horizontally corresponds to LCH_x_vals positions. 
-    # Each colour at that position is composed ot the value in L, in C, and in H. So the minp has the colour 85,60,86. 
+    # Each parameter horizontally corresponds to LCH_x_vals positions.
+    # Each colour at that position is composed ot the value in L, in C, and in H.
     # Luminosity ranges from 0 - 100, Chroma ranges from 0 - 100, Hue is degrees on the colour wheel.
-    LCH_y['L'] = [71.4,64.789,73.68]
-    LCH_y['C'] = [82.497, 47.552, 0.000]
-    LCH_y['H'] = [66.972, 74.481, 266.929]
+    LCH_y['L'] = [L_min, L_mid, L_max]
+    LCH_y['C'] = [0.   , C_mid, C_max]
+    LCH_y['H'] = [H_min, H_mid, H_max]
 
-                             
+
     if out:
         RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, RGB, 'CC-specindex-error-test1', specIndexErrTst1
+        return name, RGB
     else:
         maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, 'CC-specindex-error-test1'        
-  
-    
+        return name
+
+
 def create_cmap_velocity(minp,maxp,div=0.0, width=0.0):
     """ Makes a color map based on Jayanne English's velocity colourmap
         of yellow - plum, where the orange and dark cyan points
@@ -228,7 +234,7 @@ def test_cmap_LCH(L,C,H,Cmax=False,colour=None,width=1.5,stack='h',ax1=None,ax2=
 def __showme__(array, cmap="Greys_r", steps=0,minmax_offset=None):
     """ Internal calls to matplotlib to show the colormap image """
     if steps==0: steps = array.shape[1]
-    cmap = plt.cm.get_cmap(cmap)._resmaple(steps)
+    cmap = plt.cm.get_cmap(cmap)._resample(steps)
     #plt.figure(figsize=(10,4)) # aspect='equal'
     plt.imshow(array, aspect='auto', interpolation='nearest', cmap=cmap)
     plt.gca().set_xticks([],[])
@@ -243,7 +249,7 @@ def __showme__(array, cmap="Greys_r", steps=0,minmax_offset=None):
 def __showme2__(array, cmap_ref="Greys_r", cmap_comp="Greys",steps=0,t1="Ref",t2="Compare",minmax_offset=None):
     """ Internal calls to matplotlib to show a comparison of two colormaps using the colormap image """
     if steps==0: steps = array.shape[1]
-    
+
     cmap_ref = plt.cm.get_cmap(cmap_ref)._resample(steps)
     cmap_comp = plt.cm.get_cmap(cmap_comp)._resample(steps)
     #plt.figure(figsize=(10,4)) # aspect='equal'
@@ -265,7 +271,7 @@ def __showme2__(array, cmap_ref="Greys_r", cmap_comp="Greys",steps=0,t1="Ref",t2
     p2.set_clim( array.min()-tiny, array.max()+tiny)
     fig.colorbar(p2, ax=ax2)
 
-def test_cmap_showme(cmap,min_value,max_value,nsteps=18,minmax_offset=None):
+def test_cmap_showme(cmap,min_value=0,max_value=1,nsteps=18,minmax_offset=None):
     """ A user test to show the colormap image """
     # Make up simple colour comparison
 
