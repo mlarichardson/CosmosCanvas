@@ -38,6 +38,7 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None
     hdr = hdul[0].header
     w = WCS(hdr).celestial
     pix_size = np.abs(hdr['CDELT1'])
+    npix_size = np.int(hdr['NAXIS2'])
 
     # Convert RA to DEG and apply shift
     imagecenterX=15*(RA[0] + RA[1]/60. + RA[2]/3600.) - shift[0]
@@ -46,7 +47,9 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None
     roi = SkyCoord(imagecenterX, imagecenterY, unit=u.deg, frame=coord_frame)
     pix = skycoord_to_pixel(roi, w)
     size=np.int(RADIUS/pix_size) + 1
-
+    if size > (npix_size-1)/2:
+        print("WARNING: Requested radius is larger than half the data source size. Resetting RADIUS from {0} to {1}, the maximum allowed value.".format(RADIUS,(np.int((npix_size-1)/2)-1)*pix_size))
+        size = np.int((npix_size-1)/2)
     h_cut = hdul[0].data[0,0,int(pix[0]-size):int(pix[0]+size),int(pix[1]-size):int(pix[1]+size)]
     w_cut = w[int(pix[0]-size):int(pix[0]+size),int(pix[1]-size):int(pix[1]+size)]
 
