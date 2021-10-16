@@ -23,7 +23,7 @@ from matplotlib.patches import Ellipse, Rectangle
 import matplotlib.pylab as pylab
 
 def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None,
-                  ticks=None,nsteps=18,label="",coord_frame='fk5',mark_centre=False,cb_name='',
+                  ticks=None,nsteps=18,label="",coord_frame='fk5',mark_centre=False,show_beam=True,cb_name='',
                   add_tick_ends=True,tick_prec=-2):
     params = {'legend.fontsize': 'x-large',
          'axes.labelsize': 'x-large',
@@ -82,11 +82,12 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None
 
     pix_scale = proj_plane_pixel_scales(w_cut)
     sx, sy = pix_scale[0], pix_scale[1]
-    beamx = hdr['BMAJ']/pix_size
-    beamy = hdr['BMIN']/pix_size
-    beampa = hdr['BPA']
-    beam = Ellipse((15.,15.), beamx, beamy, angle=beampa,facecolor='black', edgecolor='none', zorder=200)
-    ax.add_patch(beam)
+    if show_beam:
+        beamx = hdr['BMAJ']/pix_size
+        beamy = hdr['BMIN']/pix_size
+        beampa = hdr['BPA']
+        beam = Ellipse((15.,15.), beamx, beamy, angle=beampa,facecolor='black', edgecolor='none', zorder=200)
+        ax.add_patch(beam)
 
     # Add cross at galaxy centre
     if mark_centre:
