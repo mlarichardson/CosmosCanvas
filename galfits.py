@@ -83,11 +83,23 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None
     pix_scale = proj_plane_pixel_scales(w_cut)
     sx, sy = pix_scale[0], pix_scale[1]
     if show_beam:
-        beamx = hdr['BMAJ']/pix_size
-        beamy = hdr['BMIN']/pix_size
-        beampa = hdr['BPA']
-        beam = Ellipse((15.,15.), beamx, beamy, angle=beampa,facecolor='black', edgecolor='none', zorder=200)
-        ax.add_patch(beam)
+        try:
+            beamx = hdr['BMAJ']/pix_size
+            try:
+                beamy = hdr['BMIN']/pix_size
+                try:
+                    beampa = hdr['BPA']
+                except:
+                    print("No BPA parameter found. Setting position angle to 0 degrees.")
+                    beampa = 0.
+            except:
+                print("No BMIN parameter found. Setting beam to circle.")
+                beamy=beamx
+                beampa = 0.
+            beam = Ellipse((15.,15.), beamx, beamy, angle=beampa,facecolor='black', edgecolor='none', zorder=200)
+            ax.add_patch(beam)
+        except:
+            print("Warning: No beam information found. Beam will not be shown. We suggest setting show_beam=False in plot_galaxy.")
 
     # Add cross at galaxy centre
     if mark_centre:
