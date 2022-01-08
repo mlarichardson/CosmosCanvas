@@ -48,7 +48,7 @@ def __stretch__(p,s1,f1):
         return ( (p-f0) + (1.-p)*f1 )/(1-f0)
 
 
-def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",modes=['clip'],targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
     """ Makes a new colour map based on Jayanne English's colourmap
         of yellow - plum, where the orange and dark cyan points
         are fixed to the steep and flat components, while the outer
@@ -107,15 +107,10 @@ def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specinde
     LCH_y['C'] = [60., 74.4,  0,     7.9               ,  25.1,     46.1              ,54.4]
     LCH_y['H'] = [86,  51.7, 72,     200               , 276.2,    302.5              , 320]
 
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    if out: return RGB
 
-    if out:
-        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, RGB
-    else:
-        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name
-
-def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",modes=['clip'],targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
     """ Makes a new colour map based on Jayanne English's constant Luminosity/chroma colourmap
         of orange - blue.
     """
@@ -142,16 +137,12 @@ def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name=
 
     LCH_y['H'] = [H_start*(1-i) + H_end*i for i in LCH_x['H']]
 
-    if out:
-        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, RGB
-    else:
-        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    if out: return RGB
 
 
 def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=None,C_max=85.,H_0=70.,H_min=None,H_mid=None,H_max=None,
-                                name="CC-specindex-error",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+                                name="CC-specindex-error",modes=['clip'],targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
     """ Makes a colour map for uncertainties in spectral index. This is based on Jayanne English's
         error colourmap of light orange and grey, where the pure orange hue indicates the most uncertainty.
 
@@ -199,13 +190,8 @@ def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=N
     LCH_y['C'] = [0.   , C_mid, C_max]
     LCH_y['H'] = [H_min, H_mid, H_max]
 
-
-    if out:
-        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, RGB
-    else:
-        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    if out: return RGB
 
 
 def create_cmap_velocity(min_p,max_p,div=0.0, width=0.0):
