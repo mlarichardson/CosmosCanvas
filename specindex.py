@@ -5,22 +5,14 @@ PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
     for radio spectral index (alpha) data. Two fixed divergent points are defined
     as alpha_steep <-0.8 and alpha_flat >-0.1.
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
-DATE: Last Edited: 2021-07-11
+DATE: Last Edited: 2022-01-07
 
 FUNCTIONS:
-    __generate_cmap__
-    __draw_path__
-    make_cmap_segmented
     __stretch__
     create_cmap_specindex
-    create_cmap_velocity
+    create_cmap_specindex_constantL
     create_cmap_specindex_error
-    __setfig_LCH__
-    test_cmap_LCH
-    __showme__
-    __showme2__
-    test_cmap_showme
-    test_cmap_showme_compare
+    create_cmap_velocity
 """
 # Imports
 import numpy as np
@@ -48,7 +40,7 @@ def __stretch__(p,s1,f1):
         return ( (p-f0) + (1.-p)*f1 )/(1-f0)
 
 
-def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",modes=['clip'],targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
     """ Makes a new colour map based on Jayanne English's colourmap
         of yellow - plum, where the orange and dark cyan points
         are fixed to the steep and flat components, while the outer
@@ -107,15 +99,10 @@ def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specinde
     LCH_y['C'] = [60., 74.4,  0,     7.9               ,  25.1,     46.1              ,54.4]
     LCH_y['H'] = [86,  51.7, 72,     200               , 276.2,    302.5              , 320]
 
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    if out: return RGB
 
-    if out:
-        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, RGB
-    else:
-        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name
-
-def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",modes=['clip'],targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
     """ Makes a new colour map based on Jayanne English's constant Luminosity/chroma colourmap
         of orange - blue.
     """
@@ -142,16 +129,12 @@ def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name=
 
     LCH_y['H'] = [H_start*(1-i) + H_end*i for i in LCH_x['H']]
 
-    if out:
-        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, RGB
-    else:
-        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    if out: return RGB
 
 
 def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=None,C_max=85.,H_0=70.,H_min=None,H_mid=None,H_max=None,
-                                name="CC-specindex-error",modes=['clip','crop'],targets=['mpl','png'],png_dir=".",out=False):
+                                name="CC-specindex-error",modes=['clip'],targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
     """ Makes a colour map for uncertainties in spectral index. This is based on Jayanne English's
         error colourmap of light orange and grey, where the pure orange hue indicates the most uncertainty.
 
@@ -199,13 +182,8 @@ def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=N
     LCH_y['C'] = [0.   , C_mid, C_max]
     LCH_y['H'] = [H_min, H_mid, H_max]
 
-
-    if out:
-        RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name, RGB
-    else:
-        maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,png_dir=png_dir,out=out)
-        return name
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    if out: return RGB
 
 
 def create_cmap_velocity(min_p,max_p,div=0.0, width=0.0):
@@ -236,99 +214,3 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.0):
     name_cmap, L,C,H = maps.make_cmap_segmented(points,values,name="blue-red")
 
     return name_cmap, L, C, H
-
-# testing
-
-def __setfig_LCH__(stack='h'):
-    """ Set figures for LCH plots """
-    if stack=='h':
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12,4))
-    if stack=='v':
-        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6,9), sharex=True)
-        plt.subplots_adjust(hspace=0.1)
-    ax1.set_ylabel("L", rotation=0, size=14); ax1.set_xlim(0,1) ; ax1.set_ylim(0,100) ; ax1.set_yticks([0,20,40,60,80,100])
-    ax2.set_ylabel("C", rotation=0, size=14); ax2.set_xlim(0,1) ; ax2.set_ylim(0,120) ; ax2.set_yticks([0,30,60,90,120])
-    ax3.set_ylabel("H", rotation=0, size=14); ax3.set_xlim(0,1) ; ax3.set_ylim(0,360) ; ax3.set_yticks([0,90,180,270,360])
-    return ax1, ax2, ax3
-
-def test_cmap_LCH(L,C,H,Cmax=False,colour=None,width=1.5,stack='h',ax1=None,ax2=None,ax3=None,label=None):
-    """ A user test for showing the LCH plots """
-    x = np.linspace(0,1,len(L))
-    if ax1 == None:
-      ax1, ax2, ax3 = __setfig_LCH__(stack=stack)
-
-    ax1.plot(x, L, c=colour, lw=width,label=label)
-    if label != None:
-      legend = ax1.legend(loc='lower left', shadow=False)
-
-    x = np.linspace(0,1,len(C))
-    base_line, = ax2.plot(x, C, c=colour, lw=width)
-    if Cmax:
-        Cmax = np.zeros(len(C))
-        for i in range(len(C)): Cmax[i] = gamut.Cmax_for_LH(L[i],H[i])
-        ax2.plot(x, Cmax, c=base_line.get_color(), ls=":", lw=1)
-    x = np.linspace(0,1,len(H))
-    ax3.plot(x, H%360, c=colour, lw=width)
-    return ax1, ax2, ax3
-
-def __showme__(array, cmap="Greys_r", steps=0,minmax_offset=None):
-    """ Internal calls to matplotlib to show the colormap image """
-    if steps==0: steps = array.shape[1]
-    cmap = plt.cm.get_cmap(cmap)._resample(steps)
-    #plt.figure(figsize=(10,4)) # aspect='equal'
-    plt.imshow(array, aspect='auto', interpolation='nearest', cmap=cmap)
-    plt.gca().set_xticks([],[])
-    plt.gca().set_yticks([],[])
-    plt.colorbar()
-    if minmax_offset == None:
-        tiny = (array.max() - array.min())/1000.
-    else:
-        tiny = minmax_offset
-    plt.clim(array.min()-tiny,array.max()+tiny)
-
-def __showme2__(array, cmap_ref="Greys_r", cmap_comp="Greys",steps=0,t1="Ref",t2="Compare",minmax_offset=None):
-    """ Internal calls to matplotlib to show a comparison of two colormaps using the colormap image """
-    if steps==0: steps = array.shape[1]
-
-    cmap_ref = plt.cm.get_cmap(cmap_ref)._resample(steps)
-    cmap_comp = plt.cm.get_cmap(cmap_comp)._resample(steps)
-    #plt.figure(figsize=(10,4)) # aspect='equal'
-    fig = plt.figure(figsize=(18,6))
-
-    ax1 = plt.subplot(121) ; plt.title(t1) ; fig.gca().set_xticks([],[]) ; fig.gca().set_yticks([],[])
-    ax2 = plt.subplot(122) ; plt.title(t2) ; fig.gca().set_xticks([],[]) ; fig.gca().set_yticks([],[])
-
-
-    p1 = ax1.imshow(array, aspect='auto', interpolation='nearest', cmap=cmap_ref)
-    if minmax_offset == None:
-        tiny = (array.max() - array.min())/1000.
-    else:
-        tiny = minmax_offset
-    p1.set_clim( array.min()-tiny, array.max()+tiny)
-    fig.colorbar(p1, ax=ax1)
-
-    p2 = ax2.imshow(array, aspect='auto', interpolation='nearest', cmap=cmap_comp)
-    p2.set_clim( array.min()-tiny, array.max()+tiny)
-    fig.colorbar(p2, ax=ax2)
-
-def test_cmap_showme(cmap,min_value=0,max_value=1,nsteps=18,minmax_offset=None):
-    """ A user test to show the colormap image """
-    # Make up simple colour comparison
-
-    x = np.arange(-np.pi/2., np.pi/2., 0.01)
-    y = np.arange(0,   np.pi, 0.01)
-    X,Y = np.meshgrid(x,y)
-    Z = min_value + (1 + np.sin(X)*np.sin(Y))/2.*(max_value - min_value)
-
-    __showme__(Z,cmap,nsteps,minmax_offset=minmax_offset)
-
-def test_cmap_showme_compare(cmap1,cmap2,min_value,max_value,nsteps=18,t1="Ref",t2="Compare",minmax_offset=None):
-    """ A user test to show a comparison of two colormaps with the colormap images """
-    # Make up simple colour comparison
-
-    x = np.arange(-np.pi/2., np.pi/2., 0.01)
-    y = np.arange(0,   np.pi, 0.01)
-    X,Y = np.meshgrid(x,y)
-    Z = min_value + (1 + np.sin(X)*np.sin(Y))/2.*(max_value - min_value)
-
-    __showme2__(Z,cmap1,cmap2,nsteps,t1=t1,t2=t2,minmax_offset=minmax_offset)
