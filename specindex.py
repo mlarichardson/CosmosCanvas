@@ -22,6 +22,10 @@ from colourspace import convert
 from colourspace import gamut
 from colourspace import maps
 from sys import exit
+try:
+    from pathlib import Path
+except:
+    print("Warning: pathlib module not available. Will not check that png_dir exists.")
 
 # custom cmap
 def __stretch__(p,s1,f1):
@@ -41,7 +45,7 @@ def __stretch__(p,s1,f1):
         return ( (p-f0) + (1.-p)*f1 )/(1-f0)
 
 
-def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
+def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
     """ Makes a new colour map based on Jayanne English's colourmap
         of yellow - plum, where the orange and dark cyan points
         are fixed to the steep and flat components, while the outer
@@ -113,10 +117,17 @@ def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specinde
         print("Error. Expected 'mode' to be a string. 'mode' can also be a list. 'mode' has value and type:", mode, type(mode))
         exit(-1)
 
+    # Check png_dir exists, and if it doesn't, make directory
+    try:
+        path = Path(png_dir)
+        path.mkdir(parents=True, exist_ok=True)
+    except:
+        pass
+
     RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
     if out: return RGB
 
-def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
+def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
     """ Makes a new colour map based on Jayanne English's constant Luminosity/chroma colourmap
         of orange - blue.
     """
@@ -156,15 +167,19 @@ def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name=
         print("Error. Expected 'mode' to be a string. 'mode' can also be a list. 'mode' has value and type:", mode, type(mode))
         exit(-1)
 
-    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
-    if out: return RGB
+    # Check png_dir exists, and if it doesn't, make directory
+    try:
+        path = Path(png_dir)
+        path.mkdir(parents=True, exist_ok=True)
+    except:
+        pass
 
     RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
     if out: return RGB
 
 
 def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=None,C_max=85.,H_0=70.,H_min=None,H_mid=None,H_max=None,
-                                name="CC-specindex-error",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir=".",out=False):
+                                name="CC-specindex-error",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
     """ Makes a colour map for uncertainties in spectral index. This is based on Jayanne English's
         error colourmap of light orange and grey, where the pure orange hue indicates the most uncertainty.
 
@@ -225,8 +240,12 @@ def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=N
         print("Error. Expected 'mode' to be a string. 'mode' can also be a list. 'mode' has value and type:", mode, type(mode))
         exit(-1)
 
-    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
-    if out: return RGB
+    # Check png_dir exists, and if it doesn't, make directory
+    try:
+        path = Path(png_dir)
+        path.mkdir(parents=True, exist_ok=True)
+    except:
+        pass
 
     RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
     if out: return RGB
