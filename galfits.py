@@ -8,6 +8,8 @@ import numpy as np
 # Here we have drawn on a script generously provided by George Heald that relies on Astropy instead.
 
 # Updated July 23, 2021 by Mark Richardson and Jayanne English
+# Updated Mar 5, 2022 by Gilles Ferrand and Jayanne English; Jayanne English March 5, 2022. 
+# Updated Mar 15, 2022 by Mark Richardson and Jayanne English.
 
 import astropy.units as u
 from astropy.wcs import WCS
@@ -24,7 +26,7 @@ import matplotlib.pylab as pylab
 
 def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None,
                   ticks=None,nsteps=18,label="",coord_frame='fk5',mark_centre=False,show_beam=True,cb_name='',
-                  add_tick_ends=True,tick_prec=-2):
+                  add_tick_ends=True,tick_prec=-2,bkgrd_black=False):
     params = {'legend.fontsize': 'x-large',
          'axes.labelsize': 'x-large',
          'axes.titlesize':'x-large',
@@ -38,7 +40,6 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None
     hdr = hdul[0].header
     w = WCS(hdr).celestial
     pix_size = np.abs(hdr['CDELT1'])
-    npix_size = np.int(hdr['NAXIS2'])
 
     # Convert RA to DEG and apply shift
     imagecenterX=15*(RA[0] + RA[1]/60. + RA[2]/3600.) - shift[0]
@@ -47,11 +48,18 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None
     roi = SkyCoord(imagecenterX, imagecenterY, unit=u.deg, frame=coord_frame)
     pix = skycoord_to_pixel(roi, w)
     size=np.int(RADIUS/pix_size) + 1
-    if size > (npix_size-1)/2:
-        print("WARNING: Requested radius is larger than half the data source size. Resetting RADIUS from {0} to {1}, the maximum allowed value.".format(RADIUS,(np.int((npix_size-1)/2)-1)*pix_size))
-        size = np.int((npix_size-1)/2)
-    h_cut = hdul[0].data[0,0,int(pix[0]-size):int(pix[0]+size),int(pix[1]-size):int(pix[1]+size)]
-    w_cut = w[int(pix[0]-size):int(pix[0]+size),int(pix[1]-size):int(pix[1]+size)]
+    npix = [hdul[0].data.shape[-1], hdul[0].data.shape[-2]]
+    if (int(pix[0]-size)<0 or int(pix[0]+size)>=npix[0]) or (int(pix[1]-size)<0 or int(pix[1]+size)>=npix[1]): 
+        if int(pix[0]-size)<0: size = pix[0]
+        if int(pix[0]+size)>=npix[0]: size = npix[0]-pix[0]-1
+        if int(pix[1]-size)<0: size = pix[1]
+        if int(pix[1]+size)>=npix[1]: size = npix[1]-pix[1]-1
+        print("WARNING: Requested radius is larger than data size, trimmed")
+    naxis = len(hdul[0].data.shape)
+    if naxis==2: h_cut = hdul[0].data[    int(pix[1]-size):int(pix[1]+size),int(pix[0]-size):int(pix[0]+size)] 
+    if naxis==3: h_cut = hdul[0].data[0  ,int(pix[1]-size):int(pix[1]+size),int(pix[0]-size):int(pix[0]+size)] 
+    if naxis==4: h_cut = hdul[0].data[0,0,int(pix[1]-size):int(pix[1]+size),int(pix[0]-size):int(pix[0]+size)] 
+    w_cut = w[int(pix[1]-size):int(pix[1]+size),int(pix[0]-size):int(pix[0]+size)]
 
     if ticks!=None and add_tick_ends:
         if min_value==None:
@@ -106,6 +114,10 @@ def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None
         scx,scy = roi.to_pixel(w_cut)
         ax.plot(scx,scy, c='red', marker='+', markersize=12, zorder=300)
 
+    # Make patch in plot black 
+    if bkgrd_black:
+        ax.set_facecolor((0.0, 0.0, 0.0))
+
     return fig, ax
 
 def get_galaxy_range(fits_file,RA,DEC,RADIUS,shift,coord_frame='fk5'):
@@ -122,6 +134,9 @@ def get_galaxy_range(fits_file,RA,DEC,RADIUS,shift,coord_frame='fk5'):
     pix = skycoord_to_pixel(roi, w)
     size=np.int(RADIUS/pix_size) + 1
 
-    h_cut = hdul[0].data[0,0,int(pix[0]-size):int(pix[0]+size),int(pix[1]-size):int(pix[1]+size)]
+    naxis = len(hdul[0].data.shape)
+    if naxis==2: h_cut = hdul[0].data[    int(pix[1]-size):int(pix[1]+size),int(pix[0]-size):int(pix[0]+size)] 
+    if naxis==3: h_cut = hdul[0].data[0  ,int(pix[1]-size):int(pix[1]+size),int(pix[0]-size):int(pix[0]+size)] 
+    if naxis==4: h_cut = hdul[0].data[0,0,int(pix[1]-size):int(pix[1]+size),int(pix[0]-size):int(pix[0]+size)] 
     print("Plot range of ", np.nanmin(h_cut),np.nanmax(h_cut))
     return np.nanmin(h_cut),np.nanmax(h_cut)
