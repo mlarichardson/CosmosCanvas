@@ -29,6 +29,7 @@ import matplotlib.pylab as pylab
 def plot_galaxy(fits_file,RA,DEC,RADIUS,shift,cmap,min_value=None,max_value=None,
                   ticks=None,nsteps=18,label="",coord_frame='fk5',mark_centre=False,show_beam=True,cb_name='',
                   add_tick_ends=True,tick_prec=-2,bkgrd_black=False,title='',square=True):
+
     params = {'legend.fontsize': 'x-large',
          'axes.labelsize': 'x-large',
          'axes.titlesize':'x-large',
