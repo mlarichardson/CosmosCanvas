@@ -7,7 +7,7 @@ PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
         It consists of 2 complementarly colours (cyan blue == blueshift; red-orange == redshift) 
         and luminosity that monotonically increases from redshift to blueshift (low values are lightest). 
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
-DATE: Last Edited: 2022-07-21
+DATE: Last Edited: 2022-12-16 JE
 
 FUNCTIONS:
     __stretch__
@@ -27,8 +27,10 @@ except:
     print("Warning: pathlib module not available. Will not check that png_dir exists.")
 
 # custom Single Divergent Point velocity cmap
+# JE: added to def Hval_mid=None and Cval_mid=0.0
+
 def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=0.33,Lval_1=61,Lval_2=None,Lval_mid=None,
-      Lval_min=10.,Cval_max=50,Cval_1=None,Cval_2=0.4,Hval_L=210.,Hval_R=30.,Hval_1=210.,Hval_2=209,Hval_3=31,Hval_4=30., Lval_3=None, Lval_4=None, name="blue-red", 
+ Lval_min=10.,Cval_max=50,Cval_mid=None,Cval_1=None,Cval_2=0.4,Hval_mid=None,Hval_L=210.,Hval_R=30.,Hval_1=210.,Hval_2=209,Hval_3=31,Hval_4=30., Lval_3=None, Lval_4=None, name="blue-red", 
       mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
     """ Makes a color map based on Jayanne English's velocity colourmap.
         This allows a lot of freedom in how the L,C,H varies.
@@ -58,7 +60,12 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=
         Lval_3 = Lval_min + (Lval_max - Lval_2)
     if Lval_4 == None:
         Lval_4 = Lval_min + (Lval_max - Lval_1)
-    Hval_mid = (Hval_2 + Hval_3)/2.
+        print("Cval_mid is ")
+        print(Cval_mid)
+    if Cval_mid == None:
+        Cval_mid = 0.0
+    if Hval_mid == None:    
+        Hval_mid = (Hval_2 + Hval_3)/2.
 
     LCH_x = {}
     LCH_y = {}
@@ -81,13 +88,20 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=
     LCH_y['L'] = [Lval_max,    Lval_1,      Lval_2, Lval_mid,      Lval_3,     Lval_4, Lval_min]
 
     LCH_x['C'] = np.copy(LCH_x['L'])
-    LCH_y['C'] = [Cval_max,     Cval_1,     Cval_2,       0.,      Cval_2,      Cval_1, Cval_max]
+    #LCH_y['C'] = [Cval_max,     Cval_1,     Cval_2,       0.,      Cval_2,      Cval_1, Cval_max] 
+    #JE: changed for customizing. Default should be ZERO. 
+    LCH_y['C'] = [Cval_max,     Cval_1,     Cval_2,       Cval_mid,      Cval_2,      Cval_1, Cval_max]
 
     LCH_x['H'] = np.copy(LCH_x['L'])
     LCH_y['H'] = [Hval_L,       Hval_1,     Hval_2,  Hval_mid,     Hval_3,      Hval_4,    Hval_R]
 
     RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    
+    print('Value of Cval_mid is ')
+    print(LCH_y['C'])
+    
     if out: return RGB
+    
     
     
 def create_cmap_doubleVelocity(minvalue,maxvalue,div=0.0, Cval_max=35, name="CC-vmap-DoubleLum1-default"):
