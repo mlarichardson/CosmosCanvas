@@ -29,7 +29,7 @@ except:
 # custom Single Divergent Point velocity cmap
 # JE: added to def Hval_mid=None and Cval_mid=0.0
 
-def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=0.33,Lval_1=61,Lval_2=None,Lval_mid=None,
+def create_cmap_velocity(min_p,max_p,div=0.0, width=0.05,Lval_max=90.,Lpoint_1=0.33,Lval_1=61,Lval_2=None,Lval_mid=None,
  Lval_min=10.,Cval_max=50,Cval_mid=None,Cval_1=None,Cval_2=0.4,Hval_mid=None,Hval_L=210.,Hval_R=30.,Hval_1=210.,Hval_2=209,Hval_3=31,Hval_4=30., Lval_3=None, Lval_4=None, name="blue-red", 
       mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
     """ Makes a color map based on Jayanne English's velocity colourmap.
@@ -41,6 +41,8 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=
         H:
             - H transitions linearly from (0,Hval_L) --> (Lpoint_1,Hval_1) --> (div - width/2,Hval_2) --> (div+width/2,Hval_3) --> (1 - Lpoint_1,Hval_4) --> (1,Hval_R)
 
+        Width: The 'width' parameter is the region where chroma is zero (i.e. grey) centred on div and lies between Lpoint_2 and Lpoint_3. Note Lval_mid is at the middle of this region and therefore if the width is too small the Lval_mid may not appear to reach the set luminosity value. NB: for large widths an optical illusion occurs that causes one to see a complementary colour where there actually exists grey. For example, if the grey is near orange you may see cyan. 
+
     """
     # Default:
     color_width = max_p - min_p
@@ -49,6 +51,7 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=
     p2 = d0 - width/2.
     p3 = d0 + width/2.
 
+    
     if Lval_mid == None:
         Lval_mid = (Lval_max + Lval_min)/2.
     if Lval_2 == None:
