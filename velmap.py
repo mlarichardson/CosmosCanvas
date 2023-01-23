@@ -1,17 +1,16 @@
 """
 
-LIBRARY: specindex
+LIBRARY: velmap
 PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
-    for radio spectral index (alpha) data. Two fixed divergent LCH_x are defined
-    as alpha_steep <-0.8 and alpha_flat >-0.1.
+        for velocity map (moment 0) data. Several divergent points can be set, 
+        although the default is a map works creates a colour legend that works with human perception.
+        It consists of 2 complementarly colours (cyan blue == blueshift; red-orange == redshift) 
+        and luminosity that monotonically increases from redshift to blueshift (low values are lightest). 
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
-DATE: Last Edited: 2022-01-07
+DATE: Last Edited: 2022-07-21
 
 FUNCTIONS:
     __stretch__
-    create_cmap_specindex
-    create_cmap_specindex_constantL
-    create_cmap_specindex_error
     create_cmap_velocity
 """
 # Imports
@@ -27,9 +26,9 @@ try:
 except:
     print("Warning: pathlib module not available. Will not check that png_dir exists.")
 
-# custom vel cmap
+# custom Single Divergent Point velocity cmap
 def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=0.33,Lval_1=61,Lval_2=None,Lval_mid=None,
-      Lval_min=10.,Cval_max=50,Cval_1=None,Cval_2=0.4,Hval_L=210.,Hval_R=30.,Hval_1=210.,Hval_2=209,Hval_3=31,Hval_4=30., name="blue-red",
+      Lval_min=10.,Cval_max=50,Cval_1=None,Cval_2=0.4,Hval_L=210.,Hval_R=30.,Hval_1=210.,Hval_2=209,Hval_3=31,Hval_4=30., Lval_3=None, Lval_4=None, name="blue-red", 
       mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
     """ Makes a color map based on Jayanne English's velocity colourmap.
         This allows a lot of freedom in how the L,C,H varies.
@@ -55,8 +54,10 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=
         (d0-width/2.)*(Lval_1-Lval_max)/Lpoint_1 + Lval_max
     if Cval_1 == None:
         Cval_1 = Cval_max
-    Lval_3 = Lval_min + (Lval_max - Lval_2)
-    Lval_4 = Lval_min + (Lval_max - Lval_1)
+    if Lval_3 == None:
+        Lval_3 = Lval_min + (Lval_max - Lval_2)
+    if Lval_4 == None:
+        Lval_4 = Lval_min + (Lval_max - Lval_1)
     Hval_mid = (Hval_2 + Hval_3)/2.
 
     LCH_x = {}
@@ -87,3 +88,36 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.001,Lval_max=90.,Lpoint_1=
 
     RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
     if out: return RGB
+    
+    
+def create_cmap_doubleVelocity(minvalue,maxvalue,div=0.0, Cval_max=35, name="CC-vmap-DoubleLum1-default"):
+        
+    # Parameters for Hues:
+    # Hval_L,       Hval_1,     Hval_2,  Hval_mid,     Hval_3,      Hval_4,    Hval_R
+    # For lowest data value (blueshift) at "L"=left through to highest redshift at "R"=right.
+
+    # Similarly change luminosities with the parameters
+    # LCH_y['L'] = [Lval_max,    Lval_1,      Lval_2, Lval_mid,      Lval_3,     Lval_4, Lval_min]
+    
+    # Select Hues, using degrees on the colour wheel: 
+    Hval_L=190. # Left for lowest data value.  Turquoise.
+    Hval_R=10.  # Right for highest data value. Rose.
+    Hval_1=210. # cyans
+    Hval_2=230.
+    Hval_3=40.  # Set this point, which is after grey midpoint, to higher (redshift) data values. 
+                # While hue 50 is the complement to 230 but looks too brown.
+    Hval_4=30.
+
+    # Adjust luminosity: 
+    Lval_1=61. # This is the default value in .py file.
+    #Lval_2=55. #setting a value here does not permit a change in Lval_mid=85. 
+    Lval_2=None
+    Lval_mid=55.
+    Lval_3=40 
+    Lval_4=30
+    
+    VMap2= create_cmap_velocity(minvalue,maxvalue,Cval_max=Cval_max,div=div,name=name,
+                                Hval_L=Hval_L,Hval_R=Hval_R,Hval_1=Hval_1,Hval_2=Hval_2,Hval_3=Hval_3,
+                                Hval_4=Hval_4, Lval_mid=Lval_mid,Lval_1=Lval_1,Lval_2=Lval_2,Lval_3=Lval_3, Lval_4=Lval_4)
+
+    return name
