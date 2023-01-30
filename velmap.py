@@ -7,7 +7,7 @@ PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
         It consists of 2 complementarly colours (cyan blue == blueshift; red-orange == redshift) 
         and luminosity that monotonically increases from redshift to blueshift (low values are lightest). 
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
-DATE: Last Edited: 2022-12-16 JE
+DATE: Last Edited: 2023-01-30 MR
 
 FUNCTIONS:
     __stretch__
