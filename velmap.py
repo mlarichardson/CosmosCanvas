@@ -50,6 +50,10 @@ def create_cmap_velocity(min_p,max_p,div=0.0, width=0.05,Lval_max=90.,Lpoint_1=0
     d0 = float(div - min_p)/float(color_width) # normalized position of midpoint
     p2 = d0 - width/2.
     p3 = d0 + width/2.
+        
+    if d0 < 0. or d0 > 1.:
+        print("Error: the division point doesn't lie within colour values: (div, min_p, max_p): ", div, min_p, max_p)
+        exit(-1)        
 
     
     if Lval_mid == None:
