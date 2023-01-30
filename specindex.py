@@ -5,14 +5,13 @@ PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
     for radio spectral index (alpha) data. Two fixed divergent points are defined
     as alpha_steep <-0.8 and alpha_flat >-0.1.
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
-DATE: Last Edited: 2022-01-07
+DATE: Last Edited: 2023-01-30 GF.
 
 FUNCTIONS:
     __stretch__
     create_cmap_specindex
     create_cmap_specindex_constantL
     create_cmap_specindex_error
-    create_cmap_velocity
 """
 # Imports
 import numpy as np
@@ -22,10 +21,6 @@ from colourspace import convert
 from colourspace import gamut
 from colourspace import maps
 from sys import exit
-try:
-    from pathlib import Path
-except:
-    print("Warning: pathlib module not available. Will not check that png_dir exists.")
 
 # custom cmap
 def __stretch__(p,s1,f1):
@@ -45,7 +40,7 @@ def __stretch__(p,s1,f1):
         return ( (p-f0) + (1.-p)*f1 )/(1-f0)
 
 
-def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
+def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specindex-default",mode='clip',targets=['mpl'],mpl_reg=True,out=False):
     """ Makes a new colour map based on Jayanne English's colourmap
         of yellow - plum, where the orange and dark cyan points
         are fixed to the steep and flat components, while the outer
@@ -117,17 +112,10 @@ def create_cmap_specindex(min_p,max_p,steep_p=-0.8,flat_p=-0.1,name="CC-specinde
         print("Error. Expected 'mode' to be a string. 'mode' can also be a list. 'mode' has value and type:", mode, type(mode))
         exit(-1)
 
-    # Check png_dir exists, and if it doesn't, make directory
-    try:
-        path = Path(png_dir)
-        path.mkdir(parents=True, exist_ok=True)
-    except:
-        pass
-
-    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,out=out)
     if out: return RGB
 
-def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
+def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name="CC-specindex-constL",mode='clip',targets=['mpl'],mpl_reg=True,out=False):
     """ Makes a new colour map based on Jayanne English's constant Luminosity/chroma colourmap
         of orange - blue.
     """
@@ -160,26 +148,18 @@ def create_cmap_specindex_constantL(L_0=75,C_0=35,H_start=70.,H_dir='left',name=
     elif isinstance(mode,list):
         modes=mode
         if len(mode)>1:
-            print("Warning: ColourConvas tutorials only address a single mode of colourmap from colourspace (either 'clip' or 'crop').")
+            print("Warning: ColourCanvas tutorials only address a single mode of colourmap from colourspace (either 'clip' or 'crop').")
             print("Warning: By providing both, the colour map names will match the 'name' argument with suffix '_clip' and '_crop'.")
             print("Warning: Please ensure that you wish to use colourspace and CosmosCanvas in this way. Expected 'mode' is a string.")
     else:
         print("Error. Expected 'mode' to be a string. 'mode' can also be a list. 'mode' has value and type:", mode, type(mode))
         exit(-1)
 
-    # Check png_dir exists, and if it doesn't, make directory
-    try:
-        path = Path(png_dir)
-        path.mkdir(parents=True, exist_ok=True)
-    except:
-        pass
-
-    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,out=out)
     if out: return RGB
 
 
-def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=None,C_max=85.,H_0=70.,H_min=None,H_mid=None,H_max=None,
-                                name="CC-specindex-error",mode='clip',targets=['mpl','png'],mpl_reg=True,png_dir="./cmaps",out=False):
+def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=None,C_max=85.,H_0=70.,H_min=None,H_mid=None,H_max=None, name="CC-specindex-error",mode='clip',targets=['mpl'],mpl_reg=True,out=False):
     """ Makes a colour map for uncertainties in spectral index. This is based on Jayanne English's
         error colourmap of light orange and grey, where the pure orange hue indicates the most uncertainty.
 
@@ -239,43 +219,7 @@ def create_cmap_specindex_error(c_mid=0.5,L_ends=72,L_mid=50.,L_min=None,L_max=N
     else:
         print("Error. Expected 'mode' to be a string. 'mode' can also be a list. 'mode' has value and type:", mode, type(mode))
         exit(-1)
-
-    # Check png_dir exists, and if it doesn't, make directory
-    try:
-        path = Path(png_dir)
-        path.mkdir(parents=True, exist_ok=True)
-    except:
-        pass
-
-    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,png_dir=png_dir,out=out)
+        
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,out=out)
     if out: return RGB
 
-
-def create_cmap_velocity(min_p,max_p,div=0.0, width=0.0):
-    """ Makes a color map based on Jayanne English's velocity colourmap
-        of yellow - plum, where the orange and dark cyan points
-        are fixed to the steep and flat points, while the outer
-        regions extend to the min and max values provided.
-    """
-    # Default:
-    color_width = max_p - min_p
-
-    d0 = float(div - min_p)/float(color_width) # normalized position of midpoint
-
-    points = {}
-    values = {}
-
-    # Apply stretches to default
-    points['L'] = [ 0,  1]
-    values['L'] = [90, 10]
-
-    points['C'] = [ 0, d0, 1]
-    values['C'] = [50,  0, 50]
-
-    points['H'] = [ 0, d0-width/2., d0+width/2., 1]
-
-    values['H'] = [30+180, 30+179, 31, 30]
-
-    name_cmap, L,C,H = maps.make_cmap_segmented(points,values,name="blue-red")
-
-    return name_cmap, L, C, H
