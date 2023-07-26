@@ -10,7 +10,6 @@ import numpy as np
 # Updated July 23, 2021 by Mark Richardson and Jayanne English
 # Updated Mar 5, 2022 by Gilles Ferrand and Jayanne English; Jayanne English March 5, 2022. 
 # Updated Mar 15, 2022 by Mark Richardson and Jayanne English.
-
 # Changes July 8/22: square image changed by Nathan Deg.
 
 #  Changes Dec. 16/22 -- Switched to rectangular trims of image by Nathan Deg
@@ -47,16 +46,11 @@ def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=Non
     hdr = hdul[0].header
     w = WCS(hdr).celestial
     pix_size = np.abs(hdr['CDELT1'])
-    
-
-
 
     # Convert RA to DEG and apply shift
     imagecenterX=15*(RA[0] + RA[1]/60. + RA[2]/3600.) - shift[0]
     imagecenterY=DEC[0] + DEC[1]/60. + DEC[2]/3600 - shift[1]
-    imagecenter=[imagecenterX,imagecenterY]
-    
-    
+    imagecenter=[imagecenterX,imagecenterY] 
     w_cut,h_cut=ImageTrim(hdul,w,TrimSwitch, ImgSize, imagecenter,pix_size,coord_frame)
     
     if ticks!=None and add_tick_ends:
