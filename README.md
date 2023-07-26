@@ -1,5 +1,5 @@
 # CosmosCanvas
-A library for creating useful colour maps for different astrophysical properties, that relies on Gilles Ferrand's [colourspace](https://github.com/gillesferrand/colourspace).
+A library for creating useful colour maps for different astrophysical properties, that relies on Gilles Ferrand's [colourspace](https://github.com/gillesferrand/colourspace). Submitted to the Astrophysics Source Code Library https://ascl.net/code/v/3580. 
 
 Tutorials, in the form of Jupyter Notebooks (Python 3), highlight different features:
 1. **1. Plot Spectral Index.ipynb** shows the Spectral Index colour map tools.
