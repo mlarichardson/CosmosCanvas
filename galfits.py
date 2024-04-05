@@ -14,7 +14,9 @@ import numpy as np
 
 #  Changes Dec. 16/22 -- Switched to rectangular trims of image by Nathan Deg
 #  Changes Jan. 3/23 -- calculated radius and renamed parameter in "def get_galaxy_range" done by Jayanne Engish
-#  Changes Jan. 8/23 -- added figsize as a parameter rather than hard coded. J.E. and Gilles Ferrand. 
+#  Changes Jan. 8/23 -- added figsize as a parameter rather than hard coded. J.E. and Gilles Ferrand.
+#  Changes Aug. 15/23 -- created a method get_galaxy_data which makes the data cut according to RA/DEC so users can 
+#                        do more with their data and make more custom plots.
 
 import astropy.units as u
 from astropy.wcs import WCS
@@ -28,7 +30,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Ellipse, Rectangle
 
 import matplotlib.pylab as pylab
-
+  
 def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=None,
                   ticks=None,nsteps=18,label="",coord_frame='fk5',mark_centre=False,show_beam=True,cb_name='',
                   add_tick_ends=True,tick_prec=-2,bkgrd_black=False,title='',TrimSwitch='no_trim', figsize=(8.0,8.0)):
@@ -42,17 +44,11 @@ def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=Non
          'ytick.labelsize':'x-large'}
     pylab.rcParams.update(params)
 
-    hdul = fits.open(fits_file)
-    hdr = hdul[0].header
-    w = WCS(hdr).celestial
-    pix_size = np.abs(hdr['CDELT1'])
-
-    # Convert RA to DEG and apply shift
-    imagecenterX=15*(RA[0] + RA[1]/60. + RA[2]/3600.) - shift[0]
-    imagecenterY=DEC[0] + DEC[1]/60. + DEC[2]/3600 - shift[1]
-    imagecenter=[imagecenterX,imagecenterY] 
-    w_cut,h_cut=ImageTrim(hdul,w,TrimSwitch, ImgSize, imagecenter,pix_size,coord_frame)
-    
+    w_cut,h_cut,hdr = get_galaxy_data(fits_file,RA,DEC,ImgSize,shift,coord_frame=coord_frame,TrimSwitch=TrimSwitch,return_header=True)
+    # w_cut is the box width of this cut centred on RA/DEC.
+    # h_cut is the data of this cut box.
+    # hdr is the header info.
+                    
     if ticks!=None and add_tick_ends:
         if min_value==None:
             im_min = np.nanmin(h_cut)
@@ -113,6 +109,22 @@ def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=Non
 
     return fig, ax
 
+def get_galaxy_data(fits_file,RA,DEC,ImgSize,shift,coord_frame='fk5',TrimSwitch='no_trim',return_header=False):
+    hdul = fits.open(fits_file)
+    hdr = hdul[0].header
+    w = WCS(hdr).celestial
+    pix_size = np.abs(hdr['CDELT1'])
+  
+    # Convert RA to DEG and apply shift
+    imagecenterX=15*(RA[0] + RA[1]/60. + RA[2]/3600.) - shift[0]
+    imagecenterY=DEC[0] + DEC[1]/60. + DEC[2]/3600 - shift[1]
+    imagecenter=[imagecenterX,imagecenterY] 
+    w_cut,h_cut=ImageTrim(hdul,w,TrimSwitch, ImgSize, imagecenter,pix_size,coord_frame)
+    if return_header:
+        return w_cut,h_cut,hdr
+    else:
+        return w_cut,h_cut
+      
 def get_galaxy_range(fits_file,RA,DEC,ImgWidth,ImgHeight,shift,coord_frame='fk5'):
     hdul = fits.open(fits_file)
     hdr = hdul[0].header
