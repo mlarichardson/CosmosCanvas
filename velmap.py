@@ -9,7 +9,7 @@ PURPOSE: A Library of tools to generate, compare, test, etc. custom colour maps
         The third map is fully customizable and the defaults are set such that one a white background the vividness of the blue is enhanced relative to the decreased chroma of the red. 
         
 AUTHORS: Gilles Ferrand, Mark Richardson, Jayanne English
-DATE: Last Edited: 2024-03-19 J.E. Added new definition for white background.
+DATE: Last Edited: 2024-06-28 J.E. Added uniform colour map.
 
 FUNCTIONS:
     __stretch__
@@ -215,3 +215,45 @@ def create_cmap_chromaVelocity(min_p,max_p,div=0.0, width=0.05,Lval_max=90.,Lpoi
     
     RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,out=out)
     if out: return RGB
+    
+    
+#Map 4: Equiluminance map based on Spectral Index map. (JE June 28/24)
+def create_cmap_velocity_constantL(L_0=75,C_0=35,H_start=190.,H_dir='left',name="CC-velocity-constL",mode='clip',targets=['mpl'],mpl_reg=True,out=False):
+    LCH_x = {}
+    LCH_y = {}
+
+    for coord in ['L','C','H']:
+        LCH_x[coord] = np.arange(0,1.05,0.05)
+
+    # Each parameter horizontally corresponds to LCH_x_vals positions.
+    # Each colour at that position is composed ot the value in L, in C, and in H.
+    # Luminosity ranges from 0 - 100, Chroma ranges from 0 - 100, Hue is degrees on the colour wheel.
+    LCH_y['L'] = [L_0]*len(LCH_x['L'])
+    LCH_y['C'] = [C_0]*len(LCH_x['C'])
+
+    if H_dir == 'left':
+        H_end = H_start - 180.
+    elif H_dir == 'right':
+        H_end = H_start + 180.
+    else:
+        print("Error: H_dir must be 'left' or 'right'")
+        return -1
+
+    LCH_y['H'] = [H_start*(1-i) + H_end*i for i in LCH_x['H']]
+
+    # Check mode is a string or single element list, otherwise issue a warning
+    if isinstance(mode,str):
+        modes = [mode]
+    elif isinstance(mode,list):
+        modes=mode
+        if len(mode)>1:
+            print("Warning: ColourCanvas tutorials only address a single mode of colourmap from colourspace (either 'clip' or 'crop').")
+            print("Warning: By providing both, the colour map names will match the 'name' argument with suffix '_clip' and '_crop'.")
+            print("Warning: Please ensure that you wish to use colourspace and CosmosCanvas in this way. Expected 'mode' is a string.")
+    else:
+        print("Error. Expected 'mode' to be a string. 'mode' can also be a list. 'mode' has value and type:", mode, type(mode))
+        exit(-1)
+
+    RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,out=out)
+    if out: return RGB
+
