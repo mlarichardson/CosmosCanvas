@@ -81,9 +81,9 @@ def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=Non
     sx, sy = pix_scale[0], pix_scale[1]
     if show_beam:
         try:
-            beamx = hdr['BMAJ']/pix_size
+            beamx = hdr['BMAJ']/pix_scale[0]
             try:
-                beamy = hdr['BMIN']/pix_size
+                beamy = hdr['BMIN']/pix_scale[1]
                 try:
                     beampa = hdr['BPA']
                 except:
