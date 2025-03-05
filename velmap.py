@@ -215,7 +215,7 @@ def create_cmap_chromaVelocity(min_p,max_p,div=0.0, width=0.05,Lval_max=90.,Lpoi
     
     RGB = maps.make_cmap_segmented(LCH_x,LCH_y,name=name,modes=modes,targets=targets,mpl_reg=mpl_reg,out=out)
     if out: return RGB
-    
+    return name
     
 #Map 4: Equiluminance map based on Spectral Index map. (JE June 28/24)
 def create_cmap_velocity_constantL(L_0=75,C_0=35,H_start=190.,H_dir='left',name="CC-velocity-constL",mode='clip',targets=['mpl'],mpl_reg=True,out=False):
