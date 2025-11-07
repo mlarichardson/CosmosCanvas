@@ -17,7 +17,7 @@ import numpy as np
 #  Changes Jan. 8/23 -- added figsize as a parameter rather than hard coded. J.E. and Gilles Ferrand.
 #  Changes Aug. 15/23 -- created a method get_galaxy_data which makes the data cut according to RA/DEC so users can 
 #                        do more with their data and make more custom plots.
-# Changes Feb. 25/25 -- to accommodate contour plotting and creating panels of plots. 
+# Changes Nov. 7/25 -- updated for developing multipanel plots. N.D. 
 
 import astropy.units as u
 from astropy.wcs import WCS
@@ -31,10 +31,12 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Ellipse, Rectangle
 
 import matplotlib.pylab as pylab
+
+from matplotlib.colors import LogNorm
   
 def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=None,
                   ticks=None,nsteps=18,label="",coord_frame='fk5',mark_centre=False,show_beam=True,cb_name='',
-                  add_tick_ends=True,tick_prec=-2,bkgrd_black=False,title='',TrimSwitch='no_trim', figsize=(8.0,8.0)):
+                  add_tick_ends=True,tick_prec=-2,bkgrd_black=False,title='',TrimSwitch='no_trim', figsize=(8.0,8.0),include_cbar=True,add_labels=True,FullReturn=False):
 
     params = {'legend.fontsize': 'x-large',
          'axes.labelsize': 'x-large',
@@ -45,10 +47,61 @@ def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=Non
          'ytick.labelsize':'x-large'}
     pylab.rcParams.update(params)
 
+    #   Load the data
     w_cut,h_cut,hdr = get_galaxy_data(fits_file,RA,DEC,ImgSize,shift,coord_frame=coord_frame,TrimSwitch=TrimSwitch,return_header=True)
     # w_cut is the box width of this cut centred on RA/DEC.
     # h_cut is the data of this cut box.
     # hdr is the header info.
+    #       Set the tick marks for a colorbar
+    ticks=SetTicks(h_cut,ticks,add_tick_ends,min_value,max_value,tick_prec)
+
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(1,1,1,projection=w_cut)
+
+    cim=AddImgToAxes(fig,ax,h_cut,w_cut,hdr,min_value,max_value,cmap,nsteps,ticks,label,coord_frame,mark_centre,show_beam,cb_name,
+                  add_tick_ends,tick_prec,bkgrd_black,title,include_cbar,add_labels)
+ 
+    if FullReturn:
+        return fig, ax, hdr ,h_cut, w_cut, cim, ticks
+    else:
+        return fig, ax
+    
+def AddImgToAxes(fig,ax,h_cut,w_cut,hdr,min_value,max_value,cmap,nsteps,ticks=None,label="",coord_frame='fk5',mark_centre=False,show_beam=True,cb_name='',
+                  add_tick_ends=True,tick_prec=-2,bkgrd_black=False,title='',include_cbar=True,add_labels=True,logScale=False):
+    if logScale==True:
+        cim = ax.imshow(h_cut, cmap=plt.get_cmap(cmap,nsteps),norm=LogNorm(vmin=min_value, vmax=max_value))
+    else:
+        cim = ax.imshow(h_cut, cmap=plt.get_cmap(cmap,nsteps), vmin=min_value, vmax=max_value)
+    
+
+    #   Add labels if wanted
+    if add_labels:
+        plt.xlabel('RA (J2000)')
+        plt.ylabel('Dec (J2000)')
+        plt.title(title)
+    #   Add the colorbar if wanted
+    if include_cbar:
+        AddCBar(fig,cim,cb_name,ticks,'right')
+    #   Get the pixel scale for the beam and center point
+    pix_scale = proj_plane_pixel_scales(w_cut)
+    sx, sy = pix_scale[0], pix_scale[1]
+    #   Add the beam if necessary
+    if show_beam:
+        CentPos=[5,5]
+        AddBeam(hdr,ax,CentPos)
+    
+    # Add cross at galaxy centre if desired
+    if mark_centre:
+        scx,scy = roi.to_pixel(w_cut)
+        ax.plot(scx,scy, c='red', marker='+', markersize=12, zorder=300)
+    # Make patch in plot black
+    if bkgrd_black:
+        ax.set_facecolor((0.0, 0.0, 0.0))
+    
+    return cim
+    
+def SetTicks(h_cut,ticks,add_tick_ends,min_value,max_value,tick_prec):
+
                     
     if ticks!=None and add_tick_ends:
         if min_value==None:
@@ -68,48 +121,40 @@ def plot_galaxy(fits_file,RA,DEC,ImgSize,shift,cmap,min_value=None,max_value=Non
                 max_tick = (np.ceil(im_max/10**tick_prec) - 1)*10**tick_prec
                 ticks = ticks + [max_tick]
 
-    fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(1,1,1,projection=w_cut)
+    return ticks
 
-    cim = ax.imshow(h_cut, cmap=plt.get_cmap(cmap,nsteps), vmin=min_value, vmax=max_value)
-    plt.xlabel('RA (J2000)') 
-    plt.ylabel('Dec (J2000)')
-    plt.title(title)
-
-    cbar = fig.colorbar(cim, label=cb_name,ticks=ticks,fraction=0.0467,pad=0.015)
-
-    pix_scale = proj_plane_pixel_scales(w_cut)
-    sx, sy = pix_scale[0], pix_scale[1]
-    if show_beam:
+def AddBeam(hdr,ax,CentPos,bcol='darkgrey'):
+    print("Adding Beam", CentPos)
+    pix_scale = [np.abs(hdr['CDELT1']),np.abs(hdr['CDELT2'])]
+    
+    try:
+        beamx = hdr['BMAJ']/pix_scale[0]
         try:
-            beamx = hdr['BMAJ']/pix_scale[0]
+            beamy = hdr['BMIN']/pix_scale[1]
             try:
-                beamy = hdr['BMIN']/pix_scale[1]
-                try:
-                    beampa = hdr['BPA']
-                except:
-                    print("No BPA parameter found. Setting position angle to 0 degrees.")
-                    beampa = 0.
+                beampa = hdr['BPA']
             except:
-                print("No BMIN parameter found. Setting beam to circle.")
-                beamy=beamx
+                print("No BPA parameter found. Setting position angle to 0 degrees.")
                 beampa = 0.
-            beam = Ellipse((15.,15.), beamx, beamy, angle=beampa,facecolor='black', edgecolor='none', zorder=200)
-            ax.add_patch(beam)
         except:
-            print("Warning: No beam information found. Beam will not be shown. We suggest setting show_beam=False in plot_galaxy.")
+            print("No BMIN parameter found. Setting beam to circle.")
+            beamy=beamx
+            beampa = 0.
+        beam = Ellipse((CentPos[0],CentPos[1]), beamx, beamy, angle=beampa,facecolor=bcol, edgecolor='none', zorder=200)
+        ax.add_patch(beam)
+    except:
+        print("Warning: No beam information found. Beam will not be shown. We suggest setting show_beam=False in plot_galaxy.")
 
-    # Add cross at galaxy centre
-    if mark_centre:
-        scx,scy = roi.to_pixel(w_cut)
-        ax.plot(scx,scy, c='red', marker='+', markersize=12, zorder=300)
+def AddCBar(fig,cim,cb_name,ticks,location):
 
-    # Make patch in plot black 
-    if bkgrd_black:
-        ax.set_facecolor((0.0, 0.0, 0.0))
-
-    return fig, ax
-
+    if location=='right':
+        cbar = fig.colorbar(cim, label=cb_name,ticks=ticks,fraction=0.0467,pad=0.015)
+    elif location == 'top':
+        cbar = fig.colorbar(cim, label=cb_name,ticks=ticks,fraction=0.0467,pad=0.015,location='top')
+    else:
+        print("Warning: No valid colorbar location specified.  Please change the location or edit galfits to give it a new option")
+        print(location)
+            
 def get_galaxy_data(fits_file,RA,DEC,ImgSize,shift,coord_frame='fk5',TrimSwitch='no_trim',return_header=False):
     hdul = fits.open(fits_file)
     hdr = hdul[0].header
@@ -139,7 +184,7 @@ def get_galaxy_range(fits_file,RA,DEC,ImgWidth,ImgHeight,shift,coord_frame='fk5'
     roi = SkyCoord(imagecenterX, imagecenterY, unit=u.deg, frame=coord_frame)
     pix = skycoord_to_pixel(roi, w)
     RADIUS = np.sqrt(np.square(ImgWidth/2.) + np.square(ImgHeight/2.))
-    rsize=np.int(RADIUS/pix_size) + 1
+    rsize=int(RADIUS/pix_size) + 1
 
     naxis = len(hdul[0].data.shape)
     if naxis==2: h_cut = hdul[0].data[    int(pix[1]-rsize):int(pix[1]+rsize),int(pix[0]-rsize):int(pix[0]+rsize)] 
@@ -162,11 +207,11 @@ def ImageTrim(hdul,w,TrimSwitch, TrimLength, imagecenter,pix_size,coord_frame):
     #   First set the center in X and Y coordinates
     imagecenterX=imagecenter[0]
     imagecenterY=imagecenter[1]
-
+    
     #   Get the center point in pixels rather than RA and DEC
     roi = SkyCoord(imagecenterX, imagecenterY, unit=u.deg, frame=coord_frame)
     pix = skycoord_to_pixel(roi, w)
-    
+        
     #   Get the number of axes in the data
     naxis = len(hdul[0].data.shape)
         #   Fix the dimensions of the data to only a 2D slice
@@ -186,8 +231,8 @@ def ImageTrim(hdul,w,TrimSwitch, TrimLength, imagecenter,pix_size,coord_frame):
         #   Make a 2D set of sizes
         size=np.zeros(2)
         #   Figure out the size of the image in X and Y in pixel units instead of sky-plane units
-        size[0]=np.int(TrimLength[0]/pix_size) + 1
-        size[1]=np.int(TrimLength[1]/pix_size) + 1
+        size[0]=int(TrimLength[0]/pix_size) + 1
+        size[1]=int(TrimLength[1]/pix_size) + 1
         size=size/2
         #   Make sure that the rectangle does not extend beyond the data image size
         if (int(pix[0]-size[0])<0 or int(pix[0]+size[0])>=npix[0]) or (int(pix[1]-size[1])<0 or int(pix[1]+size[1])>=npix[1]):
@@ -199,9 +244,64 @@ def ImageTrim(hdul,w,TrimSwitch, TrimLength, imagecenter,pix_size,coord_frame):
         #   Now we can trim the image to the target size by using pixel indices
         low=pix-size
         high=pix+size
+        
         h_cut = h_cut[int(pix[1]-size[1]):int(pix[1]+size[1]),int(pix[0]-size[0]):int(pix[0]+size[0])]
         #   And do the same to the WCS header portion
         w_cut = w[int(pix[1]-size[1]):int(pix[1]+size[1]),int(pix[0]-size[0]):int(pix[0]+size[0])]
                 
         
     return w_cut, h_cut
+
+
+def AddContours_FromFile(ax,fits_file,RA,DEC,ImgSize,shift,min_value,max_value,lCol,LS,nsteps=18,TrimSwitch=False,coord_frame='fk5',CLevels=False):
+    #   First we need to open up the fits file that we will use to add the contours
+    
+    w_cut,h_cut,hdr = get_galaxy_data(fits_file,RA,DEC,ImgSize,shift,coord_frame=coord_frame,TrimSwitch=TrimSwitch,return_header=True)
+    
+    #   Next we need to set the contour levels
+    if CLevels==False:
+        CLevels=np.linspace(min_value,max_value,num=nsteps+1)
+        print("Adding contours at the levels", CLevels)
+    #    Now we can add the contours
+    ax.contour(h_cut,colors=lCol,linewidths=LS,linestyles='-',levels=CLevels)
+    
+
+def AddScaleBar(ax,ScaleLineLength,ImgSize,Label,Loc='right',CUse='k'):
+    
+    RelativeSize=ScaleLineLength/ImgSize
+    
+    if Loc=='right':
+        RightX=0.95
+        LeftX=RightX-RelativeSize
+    elif Loc=='left':
+        LeftX=0.05
+        RightX=LeftX+RelativeSize
+    else:
+        print("Location provided is not valid")
+        print("The current valid locations are 'left' and 'right'")
+        print("Please edit galfits.py to add new locations")
+        return
+    
+    CentX=(RightX+LeftX)/2.
+    CentY=0.95
+    XArr=np.array([CentX-RelativeSize/2.,CentX+RelativeSize/2.])
+    YArr=np.array([CentY,CentY])
+    
+    ax.plot(XArr,YArr,ls='-',marker='',lw=2,transform=ax.transAxes,color=CUse)
+    
+    TxtY=CentY-0.05
+    ax.text(CentX,TxtY,Label,fontsize=20,color=CUse,ha='center',va='center',transform=ax.transAxes)
+    
+    
+def MakeXX_YY_Grid(h_cut):
+    Shape=np.shape(h_cut)
+    X=np.zeros(Shape[1])
+    Y=np.zeros(Shape[0])
+
+    for i in range(Shape[1]):
+        X[i]=i
+    for i in range(Shape[0]):
+        Y[i]=i
+
+    XX,YY=np.meshgrid(X,Y)
+    return XX,YY
